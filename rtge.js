@@ -11,6 +11,8 @@ var rtge = {
 		this.animationPosition = 0; ///< number of milliseconds since the start of the animation
 		this.x = 0; ///< horizontal position on the map
 		this.y = 0; ///< vertical position on the map
+		this.anchorX = 0; ///< horizontal position of the anchor point on the object
+		this.anchorY = 0; ///< vertical position of the anchor point on the object
 		this.tick = null; ///< function called to update the object for the next frame
 		this.click = null; ///< function called when the object is left clicked
 		this.rigthClick = null; ///< function called when the object is right clicked
@@ -101,7 +103,7 @@ var rtge = {
 		for (var i = 0; i < rtge.state.objects.length; ++i) {
 			var o = rtge.state.objects[i];
 			var img = rtge.getAnimationImage(o.animation, o.animationPosition);
-			rtge.canvasCtx.drawImage(img, o.x - rtge.camera.x, o.y - rtge.camera.y);
+			rtge.canvasCtx.drawImage(img, o.x - o.anchorX - rtge.camera.x, o.y - o.anchorY - rtge.camera.y);
 		}
 	},
 
