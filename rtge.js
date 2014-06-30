@@ -256,15 +256,17 @@ var rtge = {
 	},
 
 	canvasMouseDown: function() {
-		rtge.cameraMoving = true;
-		rtge.cameraMoved = false;
-
 		// Change state of the interface element at cursor pos
 		var pos = rtge.getCanvasPos();
 		var o = rtge.getInterfaceElem(pos.x, pos.y);
 		if (o != null) {
 			o.state = "click";
+			return;
 		}
+
+		// Initiate camera movement
+		rtge.cameraMoving = true;
+		rtge.cameraMoved = false;
 	},
 
 	canvasMouseUp: function() {
