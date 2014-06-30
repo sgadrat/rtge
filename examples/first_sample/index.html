@@ -3,44 +3,52 @@
 	<title>RTGE sample</title>
 	<script src="../../rtge.js"></script>
 	<script language="JavaScript" type="text/javascript">
-		var hero = new rtge.DynObject();
+		function Hero() {
+			rtge.DynObject.call(this);
+			this.animation = "hero.slash";
+			this.x = 10;
+			this.y = 20;
+			this.destination = null;
+			this.tick = function(time) {
+				if (this.destination != null) {
+				var stepSize = time / 3;
+					if (this.x < this.destination.x) {
+						this.x += stepSize;
+						if (this.x > this.destination.x) this.x = this.destination.x;
+					}
+					if (this.x > this.destination.x) {
+						this.x -= stepSize;
+						if (this.x < this.destination.x) this.x = this.destination.x;
+					}
+
+					if (this.y < this.destination.y) {
+						this.y += stepSize;
+						if (this.y > this.destination.y) this.y = this.destination.y;
+					}
+					if (this.y > this.destination.y) {
+						this.y -= stepSize;
+						if (this.y < this.destination.y) this.y = this.destination.y;
+					}
+
+					if (this.x == this.destination.x && this.y == this.destination.y) {
+						this.destination = null;
+					}
+				}
+			}
+			this.moveTo = function(x, y) {
+				this.destination = {x: x, y: y};
+			}
+		}
+
+		var hero = new Hero();
+		function moveHero(x, y) {
+			hero.moveTo(x, y);
+		}
+
 		function init() {
 			var anim = new rtge.Animation();
 			anim.steps = ["imgs/hero1.png", "imgs/hero2.png"];
 			anim.durations = [250, 250];
-			hero.animation = "hero.slash";
-			hero.x = 10;
-			hero.y = 20;
-			hero.destination = null;
-			hero.tick = function(time) {
-				if (hero.destination != null) {
-				var stepSize = time / 3;
-					if (hero.x < hero.destination.x) {
-						hero.x += stepSize;
-						if (hero.x > hero.destination.x) hero.x = hero.destination.x;
-					}
-					if (hero.x > hero.destination.x) {
-						hero.x -= stepSize;
-						if (hero.x < hero.destination.x) hero.x = hero.destination.x;
-					}
-
-					if (hero.y < hero.destination.y) {
-						hero.y += stepSize;
-						if (hero.y > hero.destination.y) hero.y = hero.destination.y;
-					}
-					if (hero.y > hero.destination.y) {
-						hero.y -= stepSize;
-						if (hero.y < hero.destination.y) hero.y = hero.destination.y;
-					}
-
-					if (hero.x == hero.destination.x && hero.y == hero.destination.y) {
-						hero.destination = null;
-					}
-				}
-			}
-			hero.moveTo = function(x, y) {
-				hero.destination = {x: x, y: y};
-			}
 
 			rtge.init(
 				"view",
@@ -59,7 +67,7 @@
 					"imgs/terrain.jpg"
 				],
 				{
-					"worldClick": hero.moveTo
+					"worldClick": moveHero
 				}
 			);
 		}
