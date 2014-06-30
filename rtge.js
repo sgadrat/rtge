@@ -110,8 +110,8 @@ var rtge = {
 	},
 
 	render: function() {
-		// White background
-		rtge.canvasCtx.fillStyle = "#FFFFFF";
+		// Black background
+		rtge.canvasCtx.fillStyle = "#000000";
 		rtge.canvasCtx.fillRect(0, 0, rtge.canvas.width, rtge.canvas.height);
 
 		// Map
