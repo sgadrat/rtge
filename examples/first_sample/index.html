@@ -1,0 +1,71 @@
+<html>
+<head>
+	<title>RTGE sample</title>
+	<script src="../../rtge.js"></script>
+	<script language="JavaScript" type="text/javascript">
+		var hero = new rtge.DynObject();
+		function init() {
+			var anim = new rtge.Animation();
+			anim.steps = ["imgs/hero1.png", "imgs/hero2.png"];
+			anim.durations = [250, 250];
+			hero.animation = "hero.slash";
+			hero.x = 10;
+			hero.y = 20;
+			hero.destination = null;
+			hero.tick = function(time) {
+				if (hero.destination != null) {
+				var stepSize = time / 3;
+					if (hero.x < hero.destination.x) {
+						hero.x += stepSize;
+						if (hero.x > hero.destination.x) hero.x = hero.destination.x;
+					}
+					if (hero.x > hero.destination.x) {
+						hero.x -= stepSize;
+						if (hero.x < hero.destination.x) hero.x = hero.destination.x;
+					}
+
+					if (hero.y < hero.destination.y) {
+						hero.y += stepSize;
+						if (hero.y > hero.destination.y) hero.y = hero.destination.y;
+					}
+					if (hero.y > hero.destination.y) {
+						hero.y -= stepSize;
+						if (hero.y < hero.destination.y) hero.y = hero.destination.y;
+					}
+
+					if (hero.x == hero.destination.x && hero.y == hero.destination.y) {
+						hero.destination = null;
+					}
+				}
+			}
+			hero.moveTo = function(x, y) {
+				hero.destination = {x: x, y: y};
+			}
+
+			rtge.init(
+				"view",
+				{
+					terrain: "imgs/terrain.jpg",
+					objects: [
+						hero
+					]
+				},
+				{
+					"hero.slash": anim
+				},
+				[
+					"imgs/hero1.png",
+					"imgs/hero2.png",
+					"imgs/terrain.jpg"
+				],
+				{
+					"worldClick": hero.moveTo
+				}
+			);
+		}
+	</script>
+</head>
+<body onload="init();">
+	<canvas id="view" style="width:500px; height:500px"></canvas>
+</body>
+</html>
