@@ -18,6 +18,15 @@ var rtge = {
 		this.rigthClick = null; ///< function called when the object is right clicked
 	},
 
+	// A camera viewing the scene
+	Camera: function() {
+		this.x = 0; ///< horizontal position in world coordinate
+		this.y = 0; ///< vertical position in world coordinated
+		this.worldMouseDown = null; ///< callback for mouse down outside of interface
+		this.mouseUp = null; ///< callback for mouseUp
+		this.mouseMove = null; ///< callback for mouseMove
+	},
+
 	// A GUI element
 	// Positions and dimension are given in Relative PiXel (rpx)
 	// a rpx is the 1/1000 of the minimum pixel size between viewport's height and width
@@ -47,6 +56,31 @@ var rtge = {
 		rtge.canvas.height = 500;
 		rtge.canvasCtx = rtge.canvas.getContext("2d");
 		rtge.animations = animations;
+
+		// Create the default camera
+		rtge.camera = new rtge.Camera();
+		rtge.camera.moving = false;
+		rtge.camera.moved = false;
+		rtge.camera.lastCursorPosition = null;
+		rtge.camera.worldMouseDown = function() {
+			this.moving = true;
+			this.moved = false;
+		};
+		rtge.camera.mouseUp = function() {
+			this.moving = false;
+			this.moved = false;
+		};
+		rtge.camera.mouseMove = function() {
+			var pos = rtge.getCanvasPos();
+			if (this.moving && this.lastCursorPosition != null) {
+				this.moved = true;
+				var diffX = pos.x - this.lastCursorPosition.x;
+				var diffY = pos.y - this.lastCursorPosition.y;
+				this.x -= diffX;
+				this.y -= diffY;
+			}
+			this.lastCursorPosition = pos;
+		};
 
 		// Import callbacks
 		if ("worldClick" in callbacks) {
@@ -256,6 +290,9 @@ var rtge = {
 	},
 
 	canvasMouseDown: function() {
+		// Prepare to trigger a click event
+		rtge.canClick = true;
+
 		// Change state of the interface element at cursor pos
 		var pos = rtge.getCanvasPos();
 		var o = rtge.getInterfaceElem(pos.x, pos.y);
@@ -264,17 +301,23 @@ var rtge = {
 			return;
 		}
 
-		// Initiate camera movement
-		rtge.cameraMoving = true;
-		rtge.cameraMoved = false;
+		// Callbacks (worldMouseDown)
+		if (rtge.camera.worldMouseDown != null) {
+			rtge.camera.worldMouseDown();
+		}
 	},
 
 	canvasMouseUp: function() {
-		if (! rtge.cameraMoved) {
+		// Process click event
+		if (rtge.canClick) {
 			rtge.canvasMouseClick();
+			rtge.canClick = false;
 		}
-		rtge.cameraMoving = false;
-		rtge.cameraMoved = false;
+
+		// Callbacks
+		if (rtge.camera.mouseUp != null) {
+			rtge.camera.mouseUp();
+		}
 
 		// Release clicked interface elements
 		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
@@ -289,18 +332,11 @@ var rtge = {
 	},
 
 	canvasMouseMove: function() {
-		// Move camera
-		var pos = rtge.getCanvasPos();
-		if (rtge.cameraMoving && rtge.lastCursorPosition != null) {
-			rtge.cameraMoved = true;
-			var diffX = pos.x - rtge.lastCursorPosition.x;
-			var diffY = pos.y - rtge.lastCursorPosition.y;
-			rtge.camera.x -= diffX;
-			rtge.camera.y -= diffY;
-		}
-		rtge.lastCursorPosition = pos;
+		// Moving forbids clicking
+		rtge.canClick = false;
 
 		// Update interface elements state
+		var pos = rtge.getCanvasPos();
 		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
 			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
 				var o = rtge.graphicInterface[i][j];
@@ -311,6 +347,11 @@ var rtge = {
 					o.state = "over";
 				}
 			}
+		}
+
+		// Callbacks
+		if (rtge.camera.mouseMove != null) {
+			rtge.camera.mouseMove();
 		}
 	},
 
@@ -356,9 +397,8 @@ var rtge = {
 	// takes two number as parameters (x and y positions)
 	worldClick: null,
 
-	lastCursorPosition: null, ///< Mouse tracking for canvasMouseMove event
-	cameraMoving: false, ///< Is camera is autorised to move
-	cameraMoved: false, ///< Tracking when the camera has moved for event handling
+	// True when the next mouseUp event is a click
+	canClick: false,
 
 	// Camera
 	camera: {
