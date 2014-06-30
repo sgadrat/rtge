@@ -18,9 +18,27 @@ var rtge = {
 		this.rigthClick = null; ///< function called when the object is right clicked
 	},
 
-	init: function(canvasId, initialState, animations, preloads, callbacks) {
+	// A GUI element
+	// Positions and dimension are given in Relative PiXel (rpx)
+	// a rpx is the 1/1000 of the minimum pixel size between viewport's height and width
+	InterfaceElement: function() {
+		this.anchorTop = true; ///< is the element position relative to the top of the view ? (else it is relative to the bottom)
+		this.anchorLeft = true; ///< is the element position relative to the left of the view ? (else it is relative to the right)
+		this.x = 0; ///< horizontal offset, in rpx
+		this.y = 0; ///< vertical offset, in rpx
+		this.width = 0; ///< width of the graphical element, in rpx
+		this.height = 0; ///< height of the graphical element, in rpx
+		this.image = null; ///< url of the image representing the element at rest
+		this.imageOver = null; ///< url of the image representing the element when mouse is over, null for no special image
+		this.imageClick = null; ///< url of the image representing the element when clicking on it, null for no special image
+		this.click = null; ///< function called on click, take params (x, y) in rpx from the topleft of the element
+		this.state = "rest"; ///< state of the element : rest=nothing special, over=mouse is over, click=being clicked (internally handled)
+	},
+
+	init: function(canvasId, initialState, animations, graphicInterface, preloads, callbacks) {
 		// Set the initial game state
 		rtge.state = initialState;
+		rtge.graphicInterface = graphicInterface;
 
 		// Set engine initial state
 		rtge.lastUpdate = Date.now();
@@ -105,6 +123,49 @@ var rtge = {
 			var img = rtge.getAnimationImage(o.animation, o.animationPosition);
 			rtge.canvasCtx.drawImage(img, o.x - o.anchorX - rtge.camera.x, o.y - o.anchorY - rtge.camera.y);
 		}
+
+		// User interface
+		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
+			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
+				var o = rtge.graphicInterface[i][j];
+				var pos = rtge.interfaceElemPosition(o);
+				var img = rtge.getImage(o.image);
+				if (o.imageOver != null && o.state == "over") {
+					img = rtge.getImage(o.imageOver);
+				}else if (o.imageClick != null && o.state == "click") {
+					img = rtge.getImage(o.imageClick);
+				}
+				rtge.canvasCtx.drawImage(img, pos.x, pos.y, rtge.rpxToPx(o.width), rtge.rpxToPx(o.height));
+			}
+		}
+	},
+
+	interfaceElemPosition: function(o) {
+		var res = {
+			x: 0,
+			y: 0
+		};
+		if (o.anchorLeft) {
+			res.x = rtge.rpxToPx(o.x);
+		}else {
+			res.x = rtge.canvas.width - rtge.rpxToPx(o.x);
+		}
+		if (o.anchorTop) {
+			res.y = rtge.rpxToPx(o.y);
+		}else {
+			res.y = rtge.canvas.height - rtge.rpxToPx(o.y);
+		}
+		return res;
+	},
+
+	rpxToPx: function(rpxVal) {
+		var ref = Math.min(rtge.canvas.height, rtge.canvas.width) / 1000.;
+		return Math.floor(rpxVal * ref);
+	},
+
+	pxToRpx: function(pxVal) {
+		var ref = Math.min(rtge.canvas.height, rtge.canvas.width) / 1000.;
+		return Math.ceil(pxVal / ref);
 	},
 
 	getCanvasPos: function() {
@@ -134,13 +195,49 @@ var rtge = {
 		return false;
 	},
 
+	// Return true if an interface element is at canvas position
+	interfaceIsAt: function(o, x, y) {
+		var topLeft = rtge.interfaceElemPosition(o);
+		var rightBottom = {
+			x: topLeft.x + rtge.rpxToPx(o.width),
+			y: topLeft.y + rtge.rpxToPx(o.height)
+		};
+
+		return (x >= topLeft.x && x <= rightBottom.x && y >= topLeft.y && y <= rightBottom.y);
+	},
+
+	// Return the interface element at canvas position (x, y), or null if there is none
+	getInterfaceElem: function(x, y) {
+		// Search in reverse Z order to get the one drawn on top
+		for (i = rtge.graphicInterface.length - 1; i >= 0; --i) {
+			for (j = 0; j < rtge.graphicInterface[i].length; ++j) {
+				o = rtge.graphicInterface[i][j];
+				if (rtge.interfaceIsAt(o, x, y)) {
+					return o;
+				}
+			}
+		}
+		return null;
+	},
+
 	canvasMouseClick: function() {
-		var pos = rtge.getWorldPos();
-		var i;
+		var pos = rtge.getCanvasPos();
+		var i, j, o;
+
+		// Check if we clicked an interface element, in reverse Z order to get the one drawn on top
+		o = rtge.getInterfaceElem(pos.x, pos.y);
+		if (o != null) {
+			if (o.click != null) {
+				var elemPos = rtge.interfaceElemPosition(o);
+				o.click(rtge.pxToRpx(pos.x - elemPos.x), rtge.pxToRpx(pos.y, elemPos.y));
+			}
+			return;
+		}
 
 		// Check if we clicked an object, in reverse order to get the one drawn on top
+		pos = rtge.getWorldPos();
 		for (i = rtge.state.objects.length - 1; i >= 0; --i) {
-			var o = rtge.state.objects[i];
+			o = rtge.state.objects[i];
 			if (rtge.objectIsAt(o, pos.x, pos.y)) {
 				if (event.button == 0 && o.click != null) {
 					o.click();
@@ -161,6 +258,13 @@ var rtge = {
 	canvasMouseDown: function() {
 		rtge.cameraMoving = true;
 		rtge.cameraMoved = false;
+
+		// Change state of the interface element at cursor pos
+		var pos = rtge.getCanvasPos();
+		var o = rtge.getInterfaceElem(pos.x, pos.y);
+		if (o != null) {
+			o.state = "click";
+		}
 	},
 
 	canvasMouseUp: function() {
@@ -169,9 +273,21 @@ var rtge = {
 		}
 		rtge.cameraMoving = false;
 		rtge.cameraMoved = false;
+
+		// Release clicked interface elements
+		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
+			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
+				var o = rtge.graphicInterface[i][j];
+				if (o.state == "click") {
+					o.state = "rest";
+					return; // Only one element can be clicked at any time
+				}
+			}
+		}
 	},
 
 	canvasMouseMove: function() {
+		// Move camera
 		var pos = rtge.getCanvasPos();
 		if (rtge.cameraMoving && rtge.lastCursorPosition != null) {
 			rtge.cameraMoved = true;
@@ -181,6 +297,19 @@ var rtge = {
 			rtge.camera.y -= diffY;
 		}
 		rtge.lastCursorPosition = pos;
+
+		// Update interface elements state
+		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
+			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
+				var o = rtge.graphicInterface[i][j];
+				var isUnderCursor = rtge.interfaceIsAt(o, pos.x, pos.y);
+				if (!isUnderCursor && o.state == "over") {
+					o.state = "rest";
+				}else if (isUnderCursor && o.state == "rest") {
+					o.state = "over";
+				}
+			}
+		}
 	},
 
 	getAnimationImage: function(animation, currentDuration) {
@@ -244,4 +373,9 @@ var rtge = {
 	animations: {
 		//"animation name": Animation(),
 	},
+
+	// Graphical User interface
+	graphicInterface: [
+		//[ InterfaceElement(), ... ], ...
+	],
 }

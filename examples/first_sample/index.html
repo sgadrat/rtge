@@ -52,6 +52,25 @@
 			anim.steps = ["imgs/hero1.png", "imgs/hero2.png"];
 			anim.durations = [250, 250];
 
+			var spellbar = new rtge.InterfaceElement();
+			spellbar.anchorTop = false;
+			spellbar.y = 70;
+			spellbar.width = 700;
+			spellbar.height = 70;
+			spellbar.image = "imgs/spellbar.png";
+
+			var spellOne = new rtge.InterfaceElement();
+			spellOne.anchorTop = false;
+			spellOne.y = 70;
+			spellOne.width = 70;
+			spellOne.height = 70;
+			spellOne.image = "imgs/spell1.png";
+			spellOne.imageOver = "imgs/spell1_over.png";
+			spellOne.imageClick = "imgs/spell1_click.png";
+			spellOne.click = function(x, y) {
+				moveHero(30, 100);
+			}
+
 			rtge.init(
 				"view",
 				{
@@ -64,9 +83,21 @@
 					"hero.slash": anim
 				},
 				[
+					[
+						spellbar
+					],
+					[
+						spellOne
+					]
+				],
+				[
 					"imgs/hero1.png",
 					"imgs/hero2.png",
-					"imgs/terrain.jpg"
+					"imgs/terrain.jpg",
+					"imgs/spellbar.png",
+					"imgs/spell1.png",
+					"imgs/spell1_over.png",
+					"imgs/spell1_click.png"
 				],
 				{
 					"worldClick": moveHero
