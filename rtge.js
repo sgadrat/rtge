@@ -52,8 +52,9 @@ var rtge = {
 		// Set engine initial state
 		rtge.lastUpdate = Date.now();
 		rtge.canvas = document.getElementById(canvasId);
-		rtge.canvas.width = 500;
-		rtge.canvas.height = 500;
+		var style = getComputedStyle(rtge.canvas);
+		rtge.canvas.width = style.width.slice(0, style.width.length - 2);
+		rtge.canvas.height = style.height.slice(0, style.height.length - 2);
 		rtge.canvasCtx = rtge.canvas.getContext("2d");
 		rtge.animations = animations;
 
