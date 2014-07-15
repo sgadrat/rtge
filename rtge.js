@@ -230,6 +230,19 @@ var rtge = {
 		return false;
 	},
 
+	// Remove a dynamic objebject from the world
+	removeObject: function(o) {
+		var i = rtge.state.objects.indexOf(o);
+		if (i > -1) {
+			rtge.state.objects.splice(i, 1);
+		}
+	},
+
+	// A a dynamic object to the world
+	addObject: function(o) {
+		rtge.state.objects.push(o);
+	},
+
 	// Return true if an interface element is at canvas position
 	interfaceIsAt: function(o, x, y) {
 		var topLeft = rtge.interfaceElemPosition(o);
