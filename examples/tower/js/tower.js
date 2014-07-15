@@ -136,7 +136,7 @@ function init() {
 	rtge.init(
 		"view",
 		{
-			terrain: "imgs/terrain.png",
+			terrain: "imgs/terrain.jpg",
 			objects: dynObjects
 		},
 		{
@@ -147,7 +147,7 @@ function init() {
 		},
 		[],
 		[
-			"imgs/terrain.png",
+			"imgs/terrain.jpg",
 			"imgs/construction_site.png",
 			"imgs/toolbar.png",
 			"imgs/bow_button_idle.png",
