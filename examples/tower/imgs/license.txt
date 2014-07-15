@@ -22,7 +22,7 @@ gob_walk_*.png:
 ===============
 CC-BY: http://opengameart.org/content/lpc-goblin
 
-terrain.png:
+terrain.jpg:
 ============
 
 Derived from:
