@@ -1,0 +1,34 @@
+bow_button_idle.png, bow_button_pushed.png and toolbar.png :
+============================================================
+
+Derived from:
+CC-0: http://opengameart.org/content/real-asphalt-texture-pack
+CC−BY: http://opengameart.org/content/fantasy-icon-pack-by-ravenmore-0
+
+construction_site.png:
+======================
+
+Derived from:
+CC-0: http://opengameart.org/content/game-crates
+
+construction_site_build*.png:
+=============================
+
+Derived from:
+CC-0: http://opengameart.org/content/game-crates
+CC−BY: http://opengameart.org/content/fantasy-icon-pack-by-ravenmore-0
+
+gob_walk_*.png:
+===============
+CC-BY: http://opengameart.org/content/lpc-goblin
+
+terrain.png:
+============
+
+Derived from:
+CC-0: http://opengameart.org/content/seamless-grass-64x64
+CC-0: http://opengameart.org/content/real-asphalt-texture-pack
+
+tower_old.png:
+==============
+CC-0: http://opengameart.org/content/old-tower
