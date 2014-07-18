@@ -61,19 +61,15 @@ var rtge = {
 		// Create the default camera
 		rtge.camera = new rtge.Camera();
 		rtge.camera.moving = false;
-		rtge.camera.moved = false;
 		rtge.camera.lastCursorPosition = null;
 		rtge.camera.worldMouseDown = function(pos) {
 			this.moving = true;
-			this.moved = false;
 		};
 		rtge.camera.mouseUp = function(pos) {
 			this.moving = false;
-			this.moved = false;
 		};
 		rtge.camera.mouseMove = function(pos) {
-			if (this.moving && this.lastCursorPosition != null) {
-				this.moved = true; // TODO used ?
+			if (this.moving && this.lastCursorPosition != null) { 
 				var diffX = pos.x - this.lastCursorPosition.x;
 				var diffY = pos.y - this.lastCursorPosition.y;
 				this.x -= diffX;
@@ -213,15 +209,6 @@ var rtge = {
 		};
 	},
 
-  //TODO remove
-	getWorldPos: function() {
-		var canvasPos = rtge.getCanvasPos();
-		return {
-			x: canvasPos.x + rtge.camera.x,
-			y: canvasPos.y + rtge.camera.y
-		};
-	},
-	
 	canvasPosToWorldPos: function(pos) {
 	  return {
 	    x: pos.x + rtge.camera.x,
