@@ -63,18 +63,17 @@ var rtge = {
 		rtge.camera.moving = false;
 		rtge.camera.moved = false;
 		rtge.camera.lastCursorPosition = null;
-		rtge.camera.worldMouseDown = function() {
+		rtge.camera.worldMouseDown = function(pos) {
 			this.moving = true;
 			this.moved = false;
 		};
-		rtge.camera.mouseUp = function() {
+		rtge.camera.mouseUp = function(pos) {
 			this.moving = false;
 			this.moved = false;
 		};
-		rtge.camera.mouseMove = function() {
-			var pos = rtge.getCanvasPos();
+		rtge.camera.mouseMove = function(pos) {
 			if (this.moving && this.lastCursorPosition != null) {
-				this.moved = true;
+				this.moved = true; // TODO used ?
 				var diffX = pos.x - this.lastCursorPosition.x;
 				var diffY = pos.y - this.lastCursorPosition.y;
 				this.x -= diffX;
@@ -118,8 +117,11 @@ var rtge = {
 	loaded: function() {
 		// Setup event system
 		rtge.canvas.addEventListener("mousedown", rtge.canvasMouseDown, false);
+		rtge.canvas.addEventListener("touchstart", rtge.canvasTouchStart, false);
 		rtge.canvas.addEventListener("mouseup", rtge.canvasMouseUp, false);
+		rtge.canvas.addEventListener("touchend", rtge.canvasTouchEnd, false);
 		rtge.canvas.addEventListener("mousemove", rtge.canvasMouseMove, false);
+		rtge.canvas.addEventListener("touchmove", rtge.canvasTouchMove, false);
 
 		// Start engine
 		rtge.run();
@@ -211,12 +213,20 @@ var rtge = {
 		};
 	},
 
+  //TODO remove
 	getWorldPos: function() {
 		var canvasPos = rtge.getCanvasPos();
 		return {
 			x: canvasPos.x + rtge.camera.x,
 			y: canvasPos.y + rtge.camera.y
 		};
+	},
+	
+	canvasPosToWorldPos: function(pos) {
+	  return {
+	    x: pos.x + rtge.camera.x,
+	    y: pos.y + rtge.camera.y
+	  };
 	},
 
 	// Return true if a dynamic object is at a world position
@@ -267,9 +277,9 @@ var rtge = {
 		}
 		return null;
 	},
-
-	canvasMouseClick: function() {
-		var pos = rtge.getCanvasPos();
+	
+	canvasActivate: function(x, y) {
+	  var pos = {x: x, y: y};
 		var i, j, o;
 
 		// Check if we clicked an interface element, in reverse Z order to get the one drawn on top
@@ -283,7 +293,7 @@ var rtge = {
 		}
 
 		// Check if we clicked an object, in reverse order to get the one drawn on top
-		pos = rtge.getWorldPos();
+		pos = rtge.canvasPosToWorldPos(pos);
 		for (i = rtge.state.objects.length - 1; i >= 0; --i) {
 			o = rtge.state.objects[i];
 			if (rtge.objectIsAt(o, pos.x, pos.y)) {
@@ -298,18 +308,17 @@ var rtge = {
 		}
 
 		// We didn't click an object, callback for clicking the world
-		if (event.button == 0 && rtge.worldClick != null) {
+		if (rtge.worldClick != null) {
 			rtge.worldClick(pos.x, pos.y);
 		}
 	},
-
-	canvasMouseDown: function() {
+	
+	canvasBeginInteraction: function(x, y) {
 		// Prepare to trigger a click event
 		rtge.canClick = true;
 
 		// Change state of the interface element at cursor pos
-		var pos = rtge.getCanvasPos();
-		var o = rtge.getInterfaceElem(pos.x, pos.y);
+		var o = rtge.getInterfaceElem(x, y);
 		if (o != null) {
 			o.state = "click";
 			return;
@@ -317,20 +326,20 @@ var rtge = {
 
 		// Callbacks (worldMouseDown)
 		if (rtge.camera.worldMouseDown != null) {
-			rtge.camera.worldMouseDown();
+			rtge.camera.worldMouseDown(rtge.canvasPosToWorldPos({x: x, y: y}));
 		}
 	},
-
-	canvasMouseUp: function() {
-		// Process click event
+	
+	canvasEndInteraction: function (x, y) {
+	 	// Process click event
 		if (rtge.canClick) {
-			rtge.canvasMouseClick();
+			rtge.canvasActivate(x, y);
 			rtge.canClick = false;
 		}
 
 		// Callbacks
 		if (rtge.camera.mouseUp != null) {
-			rtge.camera.mouseUp();
+			rtge.camera.mouseUp(rtge.canvasPosToWorldPos({x: x, y: y}));
 		}
 
 		// Release clicked interface elements
@@ -344,13 +353,13 @@ var rtge = {
 			}
 		}
 	},
-
-	canvasMouseMove: function() {
-		// Moving forbids clicking
+	
+	canvasMoveInteraction: function(x, y) {
+	  // Moving forbids clicking
 		rtge.canClick = false;
 
 		// Update interface elements state
-		var pos = rtge.getCanvasPos();
+		var pos = {x: x, y: y};
 		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
 			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
 				var o = rtge.graphicInterface[i][j];
@@ -365,8 +374,38 @@ var rtge = {
 
 		// Callbacks
 		if (rtge.camera.mouseMove != null) {
-			rtge.camera.mouseMove();
+			rtge.camera.mouseMove(rtge.canvasPosToWorldPos(pos));
 		}
+	},
+
+  // TODO remove
+	canvasMouseClick: function() {
+		var pos = rtge.getCanvasPos();
+		rtge.canvasActivate(pos.x, pos.y);
+	},
+
+	canvasMouseDown: function() {
+		var pos = rtge.getCanvasPos();
+   rtge.canvasBeginInteraction(pos.x, pos.y);
+	},
+
+	canvasMouseUp: function() {
+    var pos = rtge.getCanvasPos();
+    rtge.canvasEndInteraction(pos.x, pos.y);
+	},
+
+	canvasMouseMove: function() {
+    var pos = rtge.getCanvasPos();
+    rtge.canvasMoveInteraction(pos.x, pos.y);
+	},
+	
+	canvasTouchStart: function(evt) {
+	},
+	
+	canvasTouchEnd: function(evt) {
+	},
+	
+	canvasTouchMove: function(evt) {
 	},
 
 	getAnimationImage: function(animation, currentDuration) {
