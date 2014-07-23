@@ -1,3 +1,10 @@
+function log(msg) {
+  var o = document.getElementById("logs");
+  if (o) {
+    o.innerHTML += '<p>'+ msg + '</p>';
+  }
+}
+
 var rtge = {
 	// A graphical animation
 	Animation: function() {
@@ -63,13 +70,14 @@ var rtge = {
 		rtge.camera.moving = false;
 		rtge.camera.lastCursorPosition = null;
 		rtge.camera.worldMouseDown = function(pos) {
+			this.lastCursorPosition = pos;
 			this.moving = true;
 		};
 		rtge.camera.mouseUp = function(pos) {
 			this.moving = false;
 		};
 		rtge.camera.mouseMove = function(pos) {
-			if (this.moving && this.lastCursorPosition != null) { 
+			if (this.moving && this.lastCursorPosition != null) {
 				var diffX = pos.x - this.lastCursorPosition.x;
 				var diffY = pos.y - this.lastCursorPosition.y;
 				this.x -= diffX;
@@ -201,11 +209,18 @@ var rtge = {
 		return Math.ceil(pxVal / ref);
 	},
 
-	getCanvasPos: function() {
+	getCanvasPos: function(clientPos) {
+	  if (typeof clientPos === "undefined") {
+	    clientPos = {
+	      x: event.clientX,
+	      y: event.clientY
+	    };
+	  }
+
 		var rect = rtge.canvas.getBoundingClientRect();
 		return {
-			x: event.clientX - rect.left,
-			y: event.clientY - rect.top
+			x: clientPos.x - rect.left,
+			y: clientPos.y - rect.top
 		};
 	},
 
@@ -284,11 +299,8 @@ var rtge = {
 		for (i = rtge.state.objects.length - 1; i >= 0; --i) {
 			o = rtge.state.objects[i];
 			if (rtge.objectIsAt(o, pos.x, pos.y)) {
-				if (event.button == 0 && o.click != null) {
+				if (o.click != null) {
 					o.click();
-				}
-				if (event.button == 2 && o.rightClick != null) {
-					o.rightClick();
 				}
 				return;
 			}
@@ -313,7 +325,7 @@ var rtge = {
 
 		// Callbacks (worldMouseDown)
 		if (rtge.camera.worldMouseDown != null) {
-			rtge.camera.worldMouseDown(rtge.canvasPosToWorldPos({x: x, y: y}));
+			rtge.camera.worldMouseDown({x: x, y: y});
 		}
 	},
 	
@@ -326,7 +338,7 @@ var rtge = {
 
 		// Callbacks
 		if (rtge.camera.mouseUp != null) {
-			rtge.camera.mouseUp(rtge.canvasPosToWorldPos({x: x, y: y}));
+			rtge.camera.mouseUp({x: x, y: y});
 		}
 
 		// Release clicked interface elements
@@ -341,12 +353,11 @@ var rtge = {
 		}
 	},
 	
-	canvasMoveInteraction: function(x, y) {
+	canvasMoveInteraction: function(pos) {
 	  // Moving forbids clicking
 		rtge.canClick = false;
 
 		// Update interface elements state
-		var pos = {x: x, y: y};
 		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
 			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
 				var o = rtge.graphicInterface[i][j];
@@ -361,7 +372,7 @@ var rtge = {
 
 		// Callbacks
 		if (rtge.camera.mouseMove != null) {
-			rtge.camera.mouseMove(rtge.canvasPosToWorldPos(pos));
+			rtge.camera.mouseMove(pos);
 		}
 	},
 
@@ -383,16 +394,61 @@ var rtge = {
 
 	canvasMouseMove: function() {
     var pos = rtge.getCanvasPos();
-    rtge.canvasMoveInteraction(pos.x, pos.y);
+    rtge.canvasMoveInteraction(pos);
 	},
 	
 	canvasTouchStart: function(evt) {
+	  evt.preventDefault();
+	  if (rtge.currentTouch == null) {
+	    var touch = evt.changedTouches[0];
+	    rtge.currentTouch = touch.identifier;
+	    
+	    var pos = rtge.getCanvasPos({
+	      x: touch.clientX,
+	      y: touch.clientY
+	    });
+	    rtge.canvasBeginInteraction(pos.x, pos.y);
+	  }
+	},
+	
+	searchCurrentTouch: function(evt) {
+	  var touch = null;
+	  for (var i = 0; i < evt.changedTouches.length; ++i) {
+	    if (evt.changedTouches[i].identifier == rtge.currentTouch) {
+	      touch = evt.changedTouches[i];
+	      break;
+	    }
+	  }
+	  return touch;
 	},
 	
 	canvasTouchEnd: function(evt) {
+	  evt.preventDefault();
+	  if (rtge.currentTouch != null) {
+	    var touch = rtge.searchCurrentTouch(evt);
+	    if (touch != null) {
+	      rtge.currentTouch = null;
+	      var pos = rtge.getCanvasPos({
+	        x: touch.clientX,
+	        y: touch.clientY
+	      });
+	      rtge.canvasEndInteraction(pos.x, pos.y);
+	    }
+	  }
 	},
 	
 	canvasTouchMove: function(evt) {
+	  evt.preventDefault();
+	  if (rtge.currentTouch != null) {
+	    var touch = rtge.searchCurrentTouch(evt);
+	    if (touch != null) {
+	      var pos = rtge.getCanvasPos({
+	        x: touch.clientX,
+	        y: touch.clientY
+	      });
+	      rtge.canvasMoveInteraction(pos);
+	    }
+	  }
 	},
 
 	getAnimationImage: function(animation, currentDuration) {
@@ -432,6 +488,9 @@ var rtge = {
 		objects: [
 		]
 	},
+	
+	// Tracking of interesting touch event
+	currentTouch: null,
 
 	// Function called when the user click on the world,
 	// takes two number as parameters (x and y positions)
