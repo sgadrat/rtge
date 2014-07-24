@@ -126,6 +126,7 @@ var rtge = {
 		rtge.canvas.addEventListener("touchend", rtge.canvasTouchEnd, false);
 		rtge.canvas.addEventListener("mousemove", rtge.canvasMouseMove, false);
 		rtge.canvas.addEventListener("touchmove", rtge.canvasTouchMove, false);
+		window.addEventListener("resize", rtge.canvasResize, false);
 
 		// Start engine
 		rtge.run();
@@ -442,6 +443,12 @@ var rtge = {
 	      rtge.canvasMoveInteraction(pos);
 	    }
 	  }
+	},
+	
+	canvasResize: function(evt) {
+	  var style = getComputedStyle(rtge.canvas);
+		rtge.canvas.width = style.width.slice(0, style.width.length - 2);
+		rtge.canvas.height = style.height.slice(0, style.height.length - 2);
 	},
 
 	getAnimationImage: function(animation, currentDuration) {
