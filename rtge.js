@@ -22,7 +22,6 @@ var rtge = {
 		this.anchorY = 0; ///< vertical position of the anchor point on the object
 		this.tick = null; ///< function called to update the object for the next frame
 		this.click = null; ///< function called when the object is left clicked
-		this.rigthClick = null; ///< function called when the object is right clicked
 	},
 
 	// A camera viewing the scene
