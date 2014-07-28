@@ -1,8 +1,8 @@
 function log(msg) {
-  var o = document.getElementById("logs");
-  if (o) {
-    o.innerHTML += '<p>'+ msg + '</p>';
-  }
+	var o = document.getElementById("logs");
+	if (o) {
+		o.innerHTML += '<p>'+ msg + '</p>';
+	}
 }
 
 var rtge = {
@@ -210,12 +210,12 @@ var rtge = {
 	},
 
 	getCanvasPos: function(clientPos) {
-	  if (typeof clientPos === "undefined") {
-	    clientPos = {
-	      x: event.clientX,
-	      y: event.clientY
-	    };
-	  }
+		if (typeof clientPos === "undefined") {
+			clientPos = {
+				x: event.clientX,
+				y: event.clientY
+			};
+		}
 
 		var rect = rtge.canvas.getBoundingClientRect();
 		return {
@@ -225,10 +225,10 @@ var rtge = {
 	},
 
 	canvasPosToWorldPos: function(pos) {
-	  return {
-	    x: pos.x + rtge.camera.x,
-	    y: pos.y + rtge.camera.y
-	  };
+		return {
+			x: pos.x + rtge.camera.x,
+			y: pos.y + rtge.camera.y
+		};
 	},
 
 	// Return true if a dynamic object is at a world position
@@ -331,7 +331,7 @@ var rtge = {
 	},
 	
 	canvasEndInteraction: function (pos) {
-	 	// Process click event
+		// Process click event
 		if (rtge.canClick) {
 			rtge.canvasActivate(pos);
 			rtge.canClick = false;
@@ -355,7 +355,7 @@ var rtge = {
 	},
 	
 	canvasMoveInteraction: function(pos) {
-	  // Moving forbids clicking
+		// Moving forbids clicking
 		rtge.canClick = false;
 
 		// Update interface elements state
@@ -379,75 +379,75 @@ var rtge = {
 
 	canvasMouseDown: function() {
 		var pos = rtge.getCanvasPos();
-   rtge.canvasBeginInteraction(pos);
+		rtge.canvasBeginInteraction(pos);
 	},
 
 	canvasMouseUp: function() {
-    var pos = rtge.getCanvasPos();
-    rtge.canvasEndInteraction(pos);
+		var pos = rtge.getCanvasPos();
+		rtge.canvasEndInteraction(pos);
 	},
 
 	canvasMouseMove: function() {
-    var pos = rtge.getCanvasPos();
-    rtge.canvasMoveInteraction(pos);
+		var pos = rtge.getCanvasPos();
+		rtge.canvasMoveInteraction(pos);
 	},
 	
 	canvasTouchStart: function(evt) {
-	  evt.preventDefault();
-	  if (rtge.currentTouch == null) {
-	    var touch = evt.changedTouches[0];
-	    rtge.currentTouch = touch.identifier;
-	    
-	    var pos = rtge.getCanvasPos({
-	      x: touch.clientX,
-	      y: touch.clientY
-	    });
-	    rtge.canvasBeginInteraction(pos);
-	  }
+		evt.preventDefault();
+		if (rtge.currentTouch == null) {
+			var touch = evt.changedTouches[0];
+			rtge.currentTouch = touch.identifier;
+
+			var pos = rtge.getCanvasPos({
+				x: touch.clientX,
+				y: touch.clientY
+			});
+			rtge.canvasBeginInteraction(pos);
+		}
 	},
 	
 	searchCurrentTouch: function(evt) {
-	  var touch = null;
-	  for (var i = 0; i < evt.changedTouches.length; ++i) {
-	    if (evt.changedTouches[i].identifier == rtge.currentTouch) {
-	      touch = evt.changedTouches[i];
-	      break;
-	    }
-	  }
-	  return touch;
+		var touch = null;
+		for (var i = 0; i < evt.changedTouches.length; ++i) {
+			if (evt.changedTouches[i].identifier == rtge.currentTouch) {
+				touch = evt.changedTouches[i];
+				break;
+			}
+		}
+		return touch;
 	},
 	
 	canvasTouchEnd: function(evt) {
-	  evt.preventDefault();
-	  if (rtge.currentTouch != null) {
-	    var touch = rtge.searchCurrentTouch(evt);
-	    if (touch != null) {
-	      rtge.currentTouch = null;
-	      var pos = rtge.getCanvasPos({
-	        x: touch.clientX,
-	        y: touch.clientY
-	      });
-	      rtge.canvasEndInteraction(pos);
-	    }
-	  }
+		evt.preventDefault();
+		if (rtge.currentTouch != null) {
+			var touch = rtge.searchCurrentTouch(evt);
+			if (touch != null) {
+				rtge.currentTouch = null;
+				var pos = rtge.getCanvasPos({
+					x: touch.clientX,
+					y: touch.clientY
+				});
+				rtge.canvasEndInteraction(pos);
+			}
+		}
 	},
 	
 	canvasTouchMove: function(evt) {
-	  evt.preventDefault();
-	  if (rtge.currentTouch != null) {
-	    var touch = rtge.searchCurrentTouch(evt);
-	    if (touch != null) {
-	      var pos = rtge.getCanvasPos({
-	        x: touch.clientX,
-	        y: touch.clientY
-	      });
-	      rtge.canvasMoveInteraction(pos);
-	    }
-	  }
+		evt.preventDefault();
+		if (rtge.currentTouch != null) {
+			var touch = rtge.searchCurrentTouch(evt);
+			if (touch != null) {
+				var pos = rtge.getCanvasPos({
+					x: touch.clientX,
+					y: touch.clientY
+				});
+				rtge.canvasMoveInteraction(pos);
+			}
+		}
 	},
 	
 	canvasResize: function(evt) {
-	  var style = getComputedStyle(rtge.canvas);
+		var style = getComputedStyle(rtge.canvas);
 		rtge.canvas.width = style.width.slice(0, style.width.length - 2);
 		rtge.canvas.height = style.height.slice(0, style.height.length - 2);
 	},
