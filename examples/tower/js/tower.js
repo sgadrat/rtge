@@ -63,6 +63,7 @@ function Goblin(x, y) {
 	this.destinationX = null;
 	this.destinationY = null;
 	this.movingTime = 0;
+	this.path = [];
 }
 
 Goblin.prototype = {
@@ -73,6 +74,19 @@ Goblin.prototype = {
 		this.destinationY = y;
 		this.movingTime = 0;
 
+		var diffX = this.destinationX - this.originX;
+		var diffY = this.destinationY - this.originY;
+		if (Math.abs(diffX) > Math.abs(diffY)) {
+			if (diffX > 0) {
+				this.animation = "unit.goblin.walk.right";
+			}else {
+				this.animation = "unit.goblin.walk.left";
+			}
+		}else {
+			this.animation = "unit.goblin.walk.bot";
+		}
+		this.animationPosition = 0;
+
 		this.tick = function(timeElapsed) {
 			this.movingTime += timeElapsed;
 			var distance = Math.sqrt(Math.pow(this.destinationX - this.originX, 2) + Math.pow(this.destinationY - this.originY, 2));
@@ -82,10 +96,25 @@ Goblin.prototype = {
 			var timeRatio = Math.min(1, this.movingTime / timeTarget);
 			this.x = this.originX + distanceX * timeRatio;
 			this.y = this.originY + distanceY * timeRatio;
+
 			if (this.x == this.destinationX && this.y == this.destinationY) {
-				this.stopMove();
+				if (this.path.length == 0) {
+					this.stopMove();
+					rtge.removeObject(this);
+				}else {
+					var next = this.path[0];
+					this.path.splice(0, 1);
+					this.moveTo(next.x, next.y);
+				}
 			}
 		};
+	},
+
+	followPath: function(path) {
+		var first = path[0];
+		path.splice(0, 1);
+		this.path = path;
+		this.moveTo(first.x, first.y);
 	},
 
 	stopMove: function() {
@@ -121,9 +150,47 @@ function init() {
 		"imgs/gob_walk_left_5.png",
 	];
 	animUnitGoblinWalkLeft.durations = [100, 100, 100, 100, 100, 100];
+	var animUnitGoblinWalkBot = new rtge.Animation();
+	animUnitGoblinWalkBot.steps = [
+		"imgs/gob_walk_bot_0.png",
+		"imgs/gob_walk_bot_1.png",
+		"imgs/gob_walk_bot_2.png",
+		"imgs/gob_walk_bot_3.png",
+		"imgs/gob_walk_bot_4.png",
+		"imgs/gob_walk_bot_5.png",
+	];
+	animUnitGoblinWalkBot.durations = [100, 100, 100, 100, 100, 100];
+	var animUnitGoblinWalkRight = new rtge.Animation();
+	animUnitGoblinWalkRight.steps = [
+		"imgs/gob_walk_right_0.png",
+		"imgs/gob_walk_right_1.png",
+		"imgs/gob_walk_right_2.png",
+		"imgs/gob_walk_right_3.png",
+		"imgs/gob_walk_right_4.png",
+		"imgs/gob_walk_right_5.png",
+	];
+	animUnitGoblinWalkRight.durations = [100, 100, 100, 100, 100, 100];
 
+	var gobPath = [
+		{x: 300, y: 300},
+		{x: 300, y: 670},
+		{x: 1300, y: 670},
+		{x: 1300, y: 1050},
+		{x: 300, y: 1050},
+		{x: 300, y: 1450},
+		{x: 1300, y: 1450},
+		{x: 1300, y: 1840},
+		{x: 300, y: 1840},
+		{x: 300, y: 2220},
+		{x: 1300, y: 2220},
+		{x: 1300, y: 2600},
+		{x: 300, y: 2600},
+		{x: 300, y: 3000},
+		{x: 1300, y: 3000},
+		{x: 1300, y: 3300},
+	]
 	var gob = new Goblin(1600, 300);
-	gob.moveTo(300, 300);
+	gob.followPath(gobPath);
 
 	var dynObjects = [
 		new ConstructionSite(1216, 0),
@@ -144,6 +211,8 @@ function init() {
 			"construction.build": animConstructionSiteBuild,
 			"tower.archery.idle": animTowerArcheryIdle,
 			"unit.goblin.walk.left": animUnitGoblinWalkLeft,
+			"unit.goblin.walk.bot": animUnitGoblinWalkBot,
+			"unit.goblin.walk.right": animUnitGoblinWalkRight,
 		},
 		[],
 		[
@@ -163,6 +232,18 @@ function init() {
 			"imgs/gob_walk_left_3.png",
 			"imgs/gob_walk_left_4.png",
 			"imgs/gob_walk_left_5.png",
+			"imgs/gob_walk_bot_0.png",
+			"imgs/gob_walk_bot_1.png",
+			"imgs/gob_walk_bot_2.png",
+			"imgs/gob_walk_bot_3.png",
+			"imgs/gob_walk_bot_4.png",
+			"imgs/gob_walk_bot_5.png",
+			"imgs/gob_walk_right_0.png",
+			"imgs/gob_walk_right_1.png",
+			"imgs/gob_walk_right_2.png",
+			"imgs/gob_walk_right_3.png",
+			"imgs/gob_walk_right_4.png",
+			"imgs/gob_walk_right_5.png",
 		],
 		{
 			"worldClick": null
