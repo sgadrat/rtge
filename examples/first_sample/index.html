@@ -2,6 +2,7 @@
 <head>
 	<title>RTGE sample</title>
 	<script src="../../rtge.js"></script>
+	<script src="../../pathfinder.js"></script>
 	<script language="JavaScript" type="text/javascript">
 		function Hero() {
 			rtge.DynObject.call(this);
@@ -11,9 +12,10 @@
 			this.anchorX = 17;
 			this.anchorY = 96;
 			this.destination = null;
+			this.path = [];
 			this.tick = function(time) {
 				if (this.destination != null) {
-				var stepSize = time / 3;
+					var stepSize = time / 3;
 					if (this.x < this.destination.x) {
 						this.x += stepSize;
 						if (this.x > this.destination.x) this.x = this.destination.x;
@@ -35,14 +37,21 @@
 					if (this.x == this.destination.x && this.y == this.destination.y) {
 						this.destination = null;
 					}
+				}else if (this.path.length != 0) {
+					this.destination = { x: this.path[0].x, y: this.path[0].y };
+					this.path.splice(0, 1);
 				}
 			}
 			this.moveTo = function(x, y) {
 				this.destination = {x: x, y: y};
 			}
+			this.click = function() {
+				this.path = maze.findPath(maze.waypoints[3], maze.waypoints[2]);
+			}
 		}
 
 		var hero = new Hero();
+		var maze = new pathfinder.Maze();
 		function moveHero(x, y) {
 			hero.moveTo(x, y);
 		}
@@ -68,7 +77,7 @@
 			spellOne.imageOver = "imgs/spell1_over.png";
 			spellOne.imageClick = "imgs/spell1_click.png";
 			spellOne.click = function(x, y) {
-				moveHero(30, 100);
+				moveHero(30, 300);
 			}
 
 			rtge.init(
@@ -103,6 +112,31 @@
 					"worldClick": moveHero
 				}
 			);
+
+			// (wp1)-------(wp5)-------(wp2)
+			//   |           |           |
+			//   |           |           |
+			//   |           |           |
+			// (wp4)       (wp6)       (wp3)
+			var wp1 = new pathfinder.Waypoint(30, 100);
+			var wp2 = new pathfinder.Waypoint(460, 100);
+			var wp3 = new pathfinder.Waypoint(460, 300);
+			var wp4 = new pathfinder.Waypoint(30, 300);
+			var wp5 = new pathfinder.Waypoint(250, 100);
+			var wp6 = new pathfinder.Waypoint(250, 300);
+
+			wp1.addNeighbor(wp5);
+			wp1.addNeighbor(wp4);
+			wp2.addNeighbor(wp5);
+			wp2.addNeighbor(wp3);
+			wp3.addNeighbor(wp2);
+			wp4.addNeighbor(wp1);
+			wp5.addNeighbor(wp1);
+			wp5.addNeighbor(wp2);
+			wp5.addNeighbor(wp6);
+			wp6.addNeighbor(wp5);
+
+			maze.waypoints = [wp1, wp2, wp3, wp4];
 		}
 	</script>
 </head>

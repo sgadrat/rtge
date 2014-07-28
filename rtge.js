@@ -233,9 +233,11 @@ var rtge = {
 
 	// Return true if a dynamic object is at a world position
 	objectIsAt: function(o, pos) {
-		if (pos.x >= o.x && pos.y >= o.y) {
+		var imageX = o.x - o.anchorX;
+		var imageY = o.y - o.anchorY;
+		if (pos.x >= imageX && pos.y >= imageY) {
 			var img = rtge.getAnimationImage(o.animation, o.animationPosition);
-			if (pos.x <= o.x + img.width && pos.y <= o.y + img.height) {
+			if (pos.x <= imageX + img.width && pos.y <= imageY + img.height) {
 				return true;
 			}
 		}
