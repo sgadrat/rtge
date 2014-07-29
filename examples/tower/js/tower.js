@@ -1,4 +1,5 @@
 var selectedObject = null;
+var gob = null;
 
 function ConstructionSite(x, y) {
 	rtge.DynObject.call(this);
@@ -48,6 +49,16 @@ function ArcheryTower(x, y) {
 	this.x = x;
 	this.y = y;
 	this.anchorY = 198;
+	this.lastShot = null;
+
+	this.tick = function(timeElapsed) {
+		var now = Date.now();
+		if ((this.lastShot == null || now - this.lastShot > 5000) && gob.hitPoints > 0) {
+			var ball = new MagicBall(this.x, this.y, gob);
+			rtge.addObject(ball);
+			this.lastShot = now;
+		}
+	};
 }
 
 function Goblin(x, y) {
@@ -64,6 +75,7 @@ function Goblin(x, y) {
 	this.destinationY = null;
 	this.movingTime = 0;
 	this.path = [];
+	this.hitPoints = 10;
 }
 
 Goblin.prototype = {
@@ -119,8 +131,44 @@ Goblin.prototype = {
 
 	stopMove: function() {
 		this.tick = null;
-	}
+	},
+
+	hit: function() {
+		--this.hitPoints;
+		if (this.hitPoints == 0) {
+			rtge.removeObject(this);
+		}
+	},
 };
+
+function MagicBall(x, y, target) {
+	rtge.DynObject.call(this);
+	this.animation = "unit.ball.fly";
+	this.x = x;
+	this.y = y;
+	this.anchorX = 12;
+	this.anchorY = 12;
+
+	this.target = target;
+	this.speed = 0.5;
+
+	this.tick = function(timeElapsed) {
+		var diffX = this.target.x - this.x;
+		var diffY = this.target.y - this.y;
+		var targetDistance = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
+		var tripDistance = timeElapsed * this.speed;
+
+		if (targetDistance <= tripDistance) {
+			this.target.hit();
+			rtge.removeObject(this);
+			return;
+		}
+
+		var factor = tripDistance / targetDistance;
+		this.x = this.x + diffX * factor;
+		this.y = this.y + diffY * factor;
+	};
+}
 
 function init() {
 	var animConstructionSiteIdle = new rtge.Animation();
@@ -171,6 +219,15 @@ function init() {
 	];
 	animUnitGoblinWalkRight.durations = [100, 100, 100, 100, 100, 100];
 
+	var animUnitBallFly = new rtge.Animation();
+	animUnitBallFly.steps = [
+		"imgs/ball_0.png",
+		"imgs/ball_1.png",
+		"imgs/ball_2.png",
+		"imgs/ball_3.png",
+	]
+	animUnitBallFly.durations = [50, 50, 50, 50];
+
 	var gobPath = [
 		{x: 300, y: 300},
 		{x: 300, y: 670},
@@ -189,7 +246,7 @@ function init() {
 		{x: 1300, y: 3000},
 		{x: 1300, y: 3300},
 	]
-	var gob = new Goblin(1600, 300);
+	gob = new Goblin(1600, 300);
 	gob.followPath(gobPath);
 
 	var dynObjects = [
@@ -213,6 +270,7 @@ function init() {
 			"unit.goblin.walk.left": animUnitGoblinWalkLeft,
 			"unit.goblin.walk.bot": animUnitGoblinWalkBot,
 			"unit.goblin.walk.right": animUnitGoblinWalkRight,
+			"unit.ball.fly": animUnitBallFly,
 		},
 		[],
 		[
@@ -244,6 +302,10 @@ function init() {
 			"imgs/gob_walk_right_3.png",
 			"imgs/gob_walk_right_4.png",
 			"imgs/gob_walk_right_5.png",
+			"imgs/ball_0.png",
+			"imgs/ball_1.png",
+			"imgs/ball_2.png",
+			"imgs/ball_3.png",
 		],
 		{
 			"worldClick": null
