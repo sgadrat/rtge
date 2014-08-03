@@ -21,6 +21,7 @@ var rtge = {
 		this.z = 0; ///< objects with greater z value are drown on top of others
 		this.anchorX = 0; ///< horizontal position of the anchor point on the object
 		this.anchorY = 0; ///< vertical position of the anchor point on the object
+		this.visible = true; ///< is the object drawn and clickable
 		this.tick = null; ///< function called to update the object for the next frame
 		this.click = null; ///< function called when the object is left clicked
 	},
@@ -163,8 +164,10 @@ var rtge = {
 		// Dynamic objects
 		for (var i = 0; i < rtge.state.objects.length; ++i) {
 			var o = rtge.state.objects[i];
-			var img = rtge.getAnimationImage(o.animation, o.animationPosition);
-			rtge.canvasCtx.drawImage(img, o.x - o.anchorX - rtge.camera.x, o.y - o.anchorY - rtge.camera.y);
+			if (o.visible) {
+				var img = rtge.getAnimationImage(o.animation, o.animationPosition);
+				rtge.canvasCtx.drawImage(img, o.x - o.anchorX - rtge.camera.x, o.y - o.anchorY - rtge.camera.y);
+			}
 		}
 
 		// User interface
@@ -302,7 +305,7 @@ var rtge = {
 		pos = rtge.canvasPosToWorldPos(pos);
 		for (i = rtge.state.objects.length - 1; i >= 0; --i) {
 			o = rtge.state.objects[i];
-			if (rtge.objectIsAt(o, pos)) {
+			if (o.visible && rtge.objectIsAt(o, pos)) {
 				if (o.click != null) {
 					o.click();
 				}
