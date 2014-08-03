@@ -18,6 +18,7 @@ var rtge = {
 		this.animationPosition = 0; ///< number of milliseconds since the start of the animation
 		this.x = 0; ///< horizontal position on the map
 		this.y = 0; ///< vertical position on the map
+		this.z = 0; ///< objects with greater z value are drown on top of others
 		this.anchorX = 0; ///< horizontal position of the anchor point on the object
 		this.anchorY = 0; ///< vertical position of the anchor point on the object
 		this.tick = null; ///< function called to update the object for the next frame
@@ -53,6 +54,7 @@ var rtge = {
 	init: function(canvasId, initialState, animations, graphicInterface, preloads, callbacks) {
 		// Set the initial game state
 		rtge.state = initialState;
+		rtge.state.objects.sort(function (a,b) {return a.z-b.z});
 		rtge.graphicInterface = graphicInterface;
 
 		// Set engine initial state
@@ -255,6 +257,7 @@ var rtge = {
 	// A a dynamic object to the world
 	addObject: function(o) {
 		rtge.state.objects.push(o);
+		rtge.state.objects.sort(function (a,b) {return a.z-b.z});
 	},
 
 	// Return true if an interface element is at canvas position
