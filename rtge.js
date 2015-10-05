@@ -92,6 +92,9 @@ var rtge = {
 		if ("worldClick" in callbacks) {
 			rtge.worldClick = callbacks.worldClick;
 		}
+		if ("globalTick" in callbacks) {
+			rtge.globalTick = callbacks.globalTick;
+		}
 
 		// Preload images
 		for (var i = 0; i < preloads.length; ++i) {
@@ -143,6 +146,9 @@ var rtge = {
 	update: function() {
 		var begin = Date.now();
 		var timeDiff = begin - rtge.lastUpdate;
+		if (rtge.globalTick != null) {
+			rtge.globalTick(timeDiff);
+		}
 		for (var i = 0; i < rtge.state.objects.length; ++i) {
 			var o = rtge.state.objects[i];
 			o.animationPosition += timeDiff;
@@ -502,6 +508,10 @@ var rtge = {
 	// Function called when the user click on the world,
 	// takes two number as parameters (x and y positions)
 	worldClick: null,
+
+	// Function called before updating the state
+	// takes one number as parameter (the number of milliseconds since the last tick)
+	globalTick: null,
 
 	// True when the next mouseUp event is a click
 	canClick: false,
