@@ -21,7 +21,7 @@ pathfinder.Maze.prototype = {
 		var closedWp = {};
 		var precedence = {};
 
-		var fVal = this.h(origin, destination)
+		var fVal = this.h(origin, destination);
 		openWp.push({g: 0, h: fVal, wp: origin});
 		var e = null;
 		while (! openWp.empty()) {
@@ -94,7 +94,7 @@ pathfinder.PriorityQueue.prototype = {
 	},
 
 	push: function(element) {
-		priority = element.g + element.h;
+		var priority = element.g + element.h;
 
 		// Find the index to insert element in (TODO optimizable since priorities is sorted)
 		var i;

@@ -1,10 +1,3 @@
-function log(msg) {
-	var o = document.getElementById("logs");
-	if (o) {
-		o.innerHTML += '<p>'+ msg + '</p>';
-	}
-}
-
 var rtge = {
 	// A graphical animation
 	Animation: function() {
@@ -49,13 +42,13 @@ var rtge = {
 		this.imageOver = null; ///< url of the image representing the element when mouse is over, null for no special image
 		this.imageClick = null; ///< url of the image representing the element when clicking on it, null for no special image
 		this.click = null; ///< function called on click, take params (x, y) in rpx from the topleft of the element
-		this.state = "rest"; ///< state of the element : rest=nothing special, over=mouse is over, click=being clicked (internally handled)
+		this.state = 'rest'; ///< state of the element : rest=nothing special, over=mouse is over, click=being clicked (internally handled)
 	},
 
 	init: function(canvasId, initialState, animations, graphicInterface, preloads, callbacks) {
 		// Set the initial game state
 		rtge.state = initialState;
-		rtge.state.objects.sort(function (a,b) {return a.z-b.z});
+		rtge.state.objects.sort(function (a,b) {return a.z-b.z;});
 		rtge.graphicInterface = graphicInterface;
 
 		// Set engine initial state
@@ -64,7 +57,7 @@ var rtge = {
 		var style = getComputedStyle(rtge.canvas);
 		rtge.canvas.width = style.width.slice(0, style.width.length - 2);
 		rtge.canvas.height = style.height.slice(0, style.height.length - 2);
-		rtge.canvasCtx = rtge.canvas.getContext("2d");
+		rtge.canvasCtx = rtge.canvas.getContext('2d');
 		rtge.animations = animations;
 
 		// Create the default camera
@@ -89,21 +82,22 @@ var rtge = {
 		};
 
 		// Import callbacks
-		if ("worldClick" in callbacks) {
+		if ('worldClick' in callbacks) {
 			rtge.worldClick = callbacks.worldClick;
 		}
-		if ("globalTick" in callbacks) {
+		if ('globalTick' in callbacks) {
 			rtge.globalTick = callbacks.globalTick;
 		}
 
 		// Preload images
-		for (var i = 0; i < preloads.length; ++i) {
+		var i;
+		for (i = 0; i < preloads.length; ++i) {
 			if ( !(preloads[i] in rtge.images)) {
 				rtge.images[preloads[i]] = new Image();
 			}
 		}
-		for (var i in rtge.images) {
-			rtge.images[i].addEventListener("load", rtge.waitLoad, false);
+		for (i in rtge.images) {
+			rtge.images[i].addEventListener('load', rtge.waitLoad, false);
 			rtge.images[i].src = i;
 		}
 	},
@@ -112,7 +106,7 @@ var rtge = {
 		var fullyLoaded = true;
 		for (var i in rtge.images) {
 			if (rtge.images[i].complete) {
-				rtge.images[i].removeEventListener("load", rtge.waitLoad, false);
+				rtge.images[i].removeEventListener('load', rtge.waitLoad, false);
 			}else {
 				fullyLoaded = false;
 			}
@@ -125,13 +119,13 @@ var rtge = {
 
 	loaded: function() {
 		// Setup event system
-		rtge.canvas.addEventListener("mousedown", rtge.canvasMouseDown, false);
-		rtge.canvas.addEventListener("touchstart", rtge.canvasTouchStart, false);
-		rtge.canvas.addEventListener("mouseup", rtge.canvasMouseUp, false);
-		rtge.canvas.addEventListener("touchend", rtge.canvasTouchEnd, false);
-		rtge.canvas.addEventListener("mousemove", rtge.canvasMouseMove, false);
-		rtge.canvas.addEventListener("touchmove", rtge.canvasTouchMove, false);
-		window.addEventListener("resize", rtge.canvasResize, false);
+		rtge.canvas.addEventListener('mousedown', rtge.canvasMouseDown, false);
+		rtge.canvas.addEventListener('touchstart', rtge.canvasTouchStart, false);
+		rtge.canvas.addEventListener('mouseup', rtge.canvasMouseUp, false);
+		rtge.canvas.addEventListener('touchend', rtge.canvasTouchEnd, false);
+		rtge.canvas.addEventListener('mousemove', rtge.canvasMouseMove, false);
+		rtge.canvas.addEventListener('touchmove', rtge.canvasTouchMove, false);
+		window.addEventListener('resize', rtge.canvasResize, false);
 
 		// Start engine
 		rtge.run();
@@ -161,14 +155,15 @@ var rtge = {
 
 	render: function() {
 		// Black background
-		rtge.canvasCtx.fillStyle = "#000000";
+		rtge.canvasCtx.fillStyle = '#000000';
 		rtge.canvasCtx.fillRect(0, 0, rtge.canvas.width, rtge.canvas.height);
 
 		// Map
 		rtge.canvasCtx.drawImage(rtge.getImage(rtge.state.terrain), -rtge.camera.x, -rtge.camera.y);
 
 		// Dynamic objects
-		for (var i = 0; i < rtge.state.objects.length; ++i) {
+		var i;
+		for (i = 0; i < rtge.state.objects.length; ++i) {
 			var o = rtge.state.objects[i];
 			if (o.visible) {
 				var img = rtge.getAnimationImage(o.animation, o.animationPosition);
@@ -177,17 +172,17 @@ var rtge = {
 		}
 
 		// User interface
-		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
+		for (i = 0; i < rtge.graphicInterface.length; ++i) {
 			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
-				var o = rtge.graphicInterface[i][j];
-				var pos = rtge.interfaceElemPosition(o);
-				var img = rtge.getImage(o.image);
-				if (o.imageOver != null && o.state == "over") {
-					img = rtge.getImage(o.imageOver);
-				}else if (o.imageClick != null && o.state == "click") {
-					img = rtge.getImage(o.imageClick);
+				var elem = rtge.graphicInterface[i][j];
+				var pos = rtge.interfaceElemPosition(elem);
+				var stateImg = rtge.getImage(elem.image);
+				if (elem.imageOver != null && elem.state == 'over') {
+					stateImg = rtge.getImage(elem.imageOver);
+				}else if (elem.imageClick != null && elem.state == 'click') {
+					stateImg = rtge.getImage(elem.imageClick);
 				}
-				rtge.canvasCtx.drawImage(img, pos.x, pos.y, rtge.rpxToPx(o.width), rtge.rpxToPx(o.height));
+				rtge.canvasCtx.drawImage(stateImg, pos.x, pos.y, rtge.rpxToPx(elem.width), rtge.rpxToPx(elem.height));
 			}
 		}
 	},
@@ -221,7 +216,7 @@ var rtge = {
 	},
 
 	getCanvasPos: function(clientPos) {
-		if (typeof clientPos === "undefined") {
+		if (typeof clientPos === 'undefined') {
 			clientPos = {
 				x: event.clientX,
 				y: event.clientY
@@ -266,7 +261,7 @@ var rtge = {
 	// A a dynamic object to the world
 	addObject: function(o) {
 		rtge.state.objects.push(o);
-		rtge.state.objects.sort(function (a,b) {return a.z-b.z});
+		rtge.state.objects.sort(function (a,b) {return a.z-b.z;});
 	},
 
 	// Return true if an interface element is at canvas position
@@ -283,9 +278,9 @@ var rtge = {
 	// Return the interface element at canvas position pos, or null if there is none
 	getInterfaceElem: function(pos) {
 		// Search in reverse Z order to get the one drawn on top
-		for (i = rtge.graphicInterface.length - 1; i >= 0; --i) {
-			for (j = 0; j < rtge.graphicInterface[i].length; ++j) {
-				o = rtge.graphicInterface[i][j];
+		for (var i = rtge.graphicInterface.length - 1; i >= 0; --i) {
+			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
+				var o = rtge.graphicInterface[i][j];
 				if (rtge.interfaceIsAt(o, pos)) {
 					return o;
 				}
@@ -295,7 +290,7 @@ var rtge = {
 	},
 	
 	canvasActivate: function(pos) {
-		var i, j, o;
+		var i, o;
 
 		// Check if we clicked an interface element, in reverse Z order to get the one drawn on top
 		o = rtge.getInterfaceElem(pos);
@@ -332,7 +327,7 @@ var rtge = {
 		// Change state of the interface element at cursor pos
 		var o = rtge.getInterfaceElem(pos);
 		if (o != null) {
-			o.state = "click";
+			o.state = 'click';
 			return;
 		}
 
@@ -358,8 +353,8 @@ var rtge = {
 		for (var i = 0; i < rtge.graphicInterface.length; ++i) {
 			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
 				var o = rtge.graphicInterface[i][j];
-				if (o.state == "click") {
-					o.state = "rest";
+				if (o.state == 'click') {
+					o.state = 'rest';
 					return; // Only one element can be clicked at any time
 				}
 			}
@@ -375,10 +370,10 @@ var rtge = {
 			for (var j = 0; j < rtge.graphicInterface[i].length; ++j) {
 				var o = rtge.graphicInterface[i][j];
 				var isUnderCursor = rtge.interfaceIsAt(o, pos);
-				if (!isUnderCursor && o.state == "over") {
-					o.state = "rest";
-				}else if (isUnderCursor && o.state == "rest") {
-					o.state = "over";
+				if (!isUnderCursor && o.state == 'over') {
+					o.state = 'rest';
+				}else if (isUnderCursor && o.state == 'rest') {
+					o.state = 'over';
 				}
 			}
 		}
@@ -524,16 +519,16 @@ var rtge = {
 
 	// Images data
 	images: {
-		//"url": Image(),
+		//'url': Image(),
 	},
 
 	// Animation data
 	animations: {
-		//"animation name": Animation(),
+		//'animation name': Animation(),
 	},
 
 	// Graphical User interface
 	graphicInterface: [
 		//[ InterfaceElement(), ... ], ...
 	],
-}
+};
