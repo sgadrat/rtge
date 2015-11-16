@@ -216,13 +216,6 @@ var rtge = {
 	},
 
 	getCanvasPos: function(clientPos) {
-		if (typeof clientPos === 'undefined') {
-			clientPos = {
-				x: event.clientX,
-				y: event.clientY
-			};
-		}
-
 		var rect = rtge.canvas.getBoundingClientRect();
 		return {
 			x: clientPos.x - rect.left,
@@ -384,18 +377,18 @@ var rtge = {
 		}
 	},
 
-	canvasMouseDown: function() {
-		var pos = rtge.getCanvasPos();
+	canvasMouseDown: function(evt) {
+		var pos = rtge.getCanvasPos({x:evt.clientX, y:evt.clientY});
 		rtge.canvasBeginInteraction(pos);
 	},
 
-	canvasMouseUp: function() {
-		var pos = rtge.getCanvasPos();
+	canvasMouseUp: function(evt) {
+		var pos = rtge.getCanvasPos({x:evt.clientX, y:evt.clientY});
 		rtge.canvasEndInteraction(pos);
 	},
 
-	canvasMouseMove: function() {
-		var pos = rtge.getCanvasPos();
+	canvasMouseMove: function(evt) {
+		var pos = rtge.getCanvasPos({x:evt.clientX, y:evt.clientY});
 		rtge.canvasMoveInteraction(pos);
 	},
 	
