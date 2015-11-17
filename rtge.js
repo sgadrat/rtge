@@ -26,6 +26,7 @@ var rtge = {
 		this.worldMouseDown = null; ///< callback for mouse down outside of interface
 		this.mouseUp = null; ///< callback for mouseUp
 		this.mouseMove = null; ///< callback for mouseMove
+		this.tick = null; ///< callback for engine tick
 	},
 
 	// A GUI element
@@ -153,6 +154,9 @@ var rtge = {
 			if (o.tick != null) {
 				o.tick(timeDiff);
 			}
+		}
+		if (rtge.camera.tick != null) {
+			rtge.camera.tick(timeDiff);
 		}
 		rtge.lastUpdate = begin;
 	},
