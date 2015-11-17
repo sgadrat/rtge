@@ -45,7 +45,7 @@ var rtge = {
 		this.state = 'rest'; ///< state of the element : rest=nothing special, over=mouse is over, click=being clicked (internally handled)
 	},
 
-	init: function(canvasId, initialState, animations, graphicInterface, preloads, callbacks) {
+	init: function(canvasId, initialState, animations, graphicInterface, preloads, callbacks, camera) {
 		// Set the initial game state
 		rtge.state = initialState;
 		rtge.state.objects.sort(function (a,b) {return a.z-b.z;});
@@ -60,26 +60,30 @@ var rtge = {
 		rtge.canvasCtx = rtge.canvas.getContext('2d');
 		rtge.animations = animations;
 
-		// Create the default camera
-		rtge.camera = new rtge.Camera();
-		rtge.camera.moving = false;
-		rtge.camera.lastCursorPosition = null;
-		rtge.camera.worldMouseDown = function(pos) {
-			this.lastCursorPosition = pos;
-			this.moving = true;
-		};
-		rtge.camera.mouseUp = function(pos) {
-			this.moving = false;
-		};
-		rtge.camera.mouseMove = function(pos) {
-			if (this.moving && this.lastCursorPosition != null) {
-				var diffX = pos.x - this.lastCursorPosition.x;
-				var diffY = pos.y - this.lastCursorPosition.y;
-				this.x -= diffX;
-				this.y -= diffY;
-			}
-			this.lastCursorPosition = pos;
-		};
+		// Set the camera
+		if (typeof camera == 'undefined') {
+			// Create a default camera
+			camera = new rtge.Camera();
+			camera.moving = false;
+			camera.lastCursorPosition = null;
+			camera.worldMouseDown = function(pos) {
+				this.lastCursorPosition = pos;
+				this.moving = true;
+			};
+			camera.mouseUp = function(pos) {
+				this.moving = false;
+			};
+			camera.mouseMove = function(pos) {
+				if (this.moving && this.lastCursorPosition != null) {
+					var diffX = pos.x - this.lastCursorPosition.x;
+					var diffY = pos.y - this.lastCursorPosition.y;
+					this.x -= diffX;
+					this.y -= diffY;
+				}
+				this.lastCursorPosition = pos;
+			};
+		}
+		rtge.camera = camera;
 
 		// Import callbacks
 		if ('worldClick' in callbacks) {
