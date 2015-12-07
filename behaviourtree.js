@@ -27,6 +27,8 @@ var behaviourtree = {
 			node = new behaviourtree.NodeSelector();
 		} else if (rawNode.type == 'sequence') {
 			node = new behaviourtree.NodeSequence();
+		} else if (rawNode.type == 'inverter') {
+			node = new behaviourtree.NodeInverter();
 		} else if (rawNode.type == 'leaf') {
 			node = new behaviourtree.NodeLeaf(rawNode.action);
 		} else {
@@ -63,6 +65,10 @@ var behaviourtree = {
 		this.continueResult = behaviourtree.FAIL;
 	},
 	
+	NodeInverter: function() {
+		behaviourtree.Node.call(this);
+	},
+
 	NodeLeaf: function(action) {
 		behaviourtree.Node.call(this);
 		this.action = action;
@@ -102,5 +108,18 @@ behaviourtree.NodeSelector.prototype = behaviourtree.NodeCompositePrototype;
 behaviourtree.NodeLeaf.prototype = {
 	tick: function(context, privateContext) {
 		return this.action(privateContext);
+	}
+};
+
+behaviourtree.NodeInverter.prototype = {
+	tick: function(context, privateContext) {
+		var childNode = context.nodes[this.childrens[0]];
+		var childRes = childNode.tick(context, privateContext);
+		if (childRes == behaviourtree.SUCCESS) {
+			return behaviourtree.FAIL;
+		}else if (childRes == behaviourtree.FAIL) {
+			return behaviourtree.SUCCESS;
+		}
+		return childRes;
 	}
 };
