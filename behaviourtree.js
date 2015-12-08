@@ -29,6 +29,8 @@ var behaviourtree = {
 			node = new behaviourtree.NodeSequence();
 		} else if (rawNode.type == 'inverter') {
 			node = new behaviourtree.NodeInverter();
+		} else if (rawNode.type == 'identity') {
+			node = new behaviourtree.NodeIdentity();
 		} else if (rawNode.type == 'leaf') {
 			node = new behaviourtree.NodeLeaf(rawNode.action);
 		} else {
@@ -66,6 +68,10 @@ var behaviourtree = {
 	},
 	
 	NodeInverter: function() {
+		behaviourtree.Node.call(this);
+	},
+
+	NodeIdentity: function() {
 		behaviourtree.Node.call(this);
 	},
 
@@ -118,6 +124,17 @@ behaviourtree.NodeInverter.prototype = {
 		if (childRes == behaviourtree.SUCCESS) {
 			return behaviourtree.FAIL;
 		}else if (childRes == behaviourtree.FAIL) {
+			return behaviourtree.SUCCESS;
+		}
+		return childRes;
+	}
+};
+
+behaviourtree.NodeIdentity.prototype = {
+	tick: function(context, privateContext) {
+		var childNode = context.nodes[this.childrens[0]];
+		var childRes = childNode.tick(context, privateContext);
+		if (childRes == behaviourtree.FAIL) {
 			return behaviourtree.SUCCESS;
 		}
 		return childRes;
