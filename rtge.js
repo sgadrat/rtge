@@ -94,26 +94,51 @@ var rtge = {
 			rtge.globalTick = callbacks.globalTick;
 		}
 
-		// Preload images
+		// Add needed images to preloads
 		var i;
+		/* tilesets */
 		for (i = 0; i < preloads.length; ++i) {
-			if ( !(preloads[i] in rtge.images)) {
-				rtge.images[preloads[i]] = new Image();
+			var asset = preloads[i];
+			if (typeof asset != 'string') {
+				var tilesets = asset['tilemap']['tilesets'];
+				for (var tilemapIndex = 0; tilemapIndex < tilesets.length; ++tilemapIndex) {
+					var imgSrc = tilesets[tilemapIndex]['image'];
+					if (imgSrc !== null) {
+						preloads.push(imgSrc);
+					}
+				}
 			}
 		}
-		for (i in rtge.images) {
-			rtge.images[i].addEventListener('load', rtge.waitLoad, false);
-			rtge.images[i].src = i;
+
+		// Preload images
+		for (i = 0; i < preloads.length; ++i) {
+			var name = preloads[i];
+			var data = null;
+			if (typeof name != 'string') {
+				name = preloads[i]['name'];
+				data = preloads[i]['tilemap'];
+			}
+			if (!(name in rtge.images)) {
+				if (data === null) {
+					rtge.images[name] = new Image();
+					rtge.images[name].addEventListener('load', rtge.waitLoad, false);
+					rtge.images[name].src = name;
+				}else {
+					rtge.images[name] = data;
+				}
+			}
 		}
 	},
 
 	waitLoad: function() {
 		var fullyLoaded = true;
 		for (var i in rtge.images) {
-			if (rtge.images[i].complete) {
-				rtge.images[i].removeEventListener('load', rtge.waitLoad, false);
-			}else {
-				fullyLoaded = false;
+			if (rtge.images[i] instanceof Image) {
+				if (rtge.images[i].complete) {
+					rtge.images[i].removeEventListener('load', rtge.waitLoad, false);
+				}else {
+					fullyLoaded = false;
+				}
 			}
 		}
 
@@ -167,7 +192,7 @@ var rtge = {
 		rtge.canvasCtx.fillRect(0, 0, rtge.canvas.width, rtge.canvas.height);
 
 		// Map
-		rtge.canvasCtx.drawImage(rtge.getImage(rtge.state.terrain), -rtge.camera.x, -rtge.camera.y);
+		rtge.drawImage(rtge.state.terrain, -rtge.camera.x, -rtge.camera.y);
 
 		// Dynamic objects
 		var i;
@@ -488,7 +513,56 @@ var rtge = {
 	},
 
 	getImage: function(imageUrl) {
+		if (!(rtge.images[imageUrl] instanceof Image)) {
+			rtge.images[imageUrl] = rtge.tilemapToImage(rtge.images[imageUrl]);
+		}
 		return rtge.images[imageUrl];
+	},
+
+	drawImage: function(imageUrl, x, y) {
+		if (rtge.images[imageUrl] instanceof Image) {
+			rtge.canvasCtx.drawImage(rtge.getImage(imageUrl), x, y);
+		}else {
+			rtge.drawTilemap(rtge.canvasCtx, rtge.images[imageUrl], x, y);
+		}
+	},
+
+	tilemapToImage: function(tilemap) {
+		var canvas = document.createElement('canvas');
+		canvas.width = tilemap.width * tilemap.tilewidth;
+		canvas.height = tilemap.height * tilemap.tileheight;
+		var ctx = canvas.getContext('2d');
+
+		rtge.drawTilemap(ctx, tilemap, 0, 0);
+
+		var res = new Image();
+		res.src = canvas.toDataURL();
+		return res;
+	},
+
+	drawTilemap: function(ctx, tilemap, renderX, renderY) {
+		for (var layerIndex = 0; layerIndex < tilemap.layers.length; ++ layerIndex) {
+			var layer = tilemap.layers[layerIndex];
+			if (layer.visible) {
+				var x, y;
+				for (y = 0; y < tilemap.height; ++y) {
+					for (x = 0; x < tilemap.width; ++x) {
+						var tileIndex = layer.data[x + y * tilemap.width];
+						for (var tilesetIndex = 0; tilesetIndex < tilemap.tilesets.length; ++ tilesetIndex) {
+							var tileset = tilemap.tilesets[tilesetIndex];
+							if (tileIndex >= tileset.firstgid && tileIndex < tileset.firstgid + tileset.tilecount) {
+								var relativeIndex = tileIndex - tileset.firstgid;
+								var pixelIndex = relativeIndex * tileset.tilewidth;
+								var sourceX = pixelIndex % tileset.imagewidth;
+								var sourceY = Math.floor(pixelIndex / tileset.imagewidth) * tileset.tileheight;
+								ctx.drawImage(rtge.getImage(tileset.image), sourceX, sourceY, tileset.tilewidth, tileset.tileheight, renderX + x * tilemap.tilewidth, renderY + y * tilemap.tileheight, tilemap.tilewidth, tilemap.tileheight);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	},
 
 	// Current game state
