@@ -555,7 +555,13 @@ var rtge = {
 								var pixelIndex = relativeIndex * tileset.tilewidth;
 								var sourceX = pixelIndex % tileset.imagewidth;
 								var sourceY = Math.floor(pixelIndex / tileset.imagewidth) * tileset.tileheight;
-								ctx.drawImage(rtge.getImage(tileset.image), sourceX, sourceY, tileset.tilewidth, tileset.tileheight, renderX + x * tilemap.tilewidth, renderY + y * tilemap.tileheight, tilemap.tilewidth, tilemap.tileheight);
+								var destX = Math.floor(renderX) + x * tilemap.tilewidth;
+								var destY = Math.floor(renderY) + y * tilemap.tileheight;
+								ctx.drawImage(
+									rtge.getImage(tileset.image),
+									sourceX, sourceY, tileset.tilewidth, tileset.tileheight,
+									destX, destY, tilemap.tilewidth, tilemap.tileheight
+								);
 								break;
 							}
 						}
