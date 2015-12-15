@@ -539,7 +539,7 @@ var rtge = {
 	},
 
 	drawImage: function(imageUrl, x, y) {
-		if (rtge.images[imageUrl] instanceof Image) {
+		if (rtge.images[imageUrl] instanceof Image || rtge.prerenderTilemaps) {
 			rtge.canvasCtx.drawImage(rtge.getImage(imageUrl), x, y);
 		}else {
 			rtge.drawTilemap(
@@ -643,4 +643,11 @@ var rtge = {
 	graphicInterface: [
 		//[ InterfaceElement(), ... ], ...
 	],
+
+	// Set to true to render tilemaps only once
+	//  * unusable on local with Chromium since images from disk taint canvas
+	//  * inconvenient to modify tilemaps on the fly
+	//  * memory usage increase
+	//  * big speed improvement when lots of cells on screen
+	prerenderTilemaps: false,
 };
