@@ -199,8 +199,27 @@ var rtge = {
 		for (i = 0; i < rtge.state.objects.length; ++i) {
 			var o = rtge.state.objects[i];
 			if (o.visible) {
+				// Get the image to print on this frame
 				var img = rtge.getAnimationImage(o.animation, o.animationPosition);
-				rtge.canvasCtx.drawImage(img, o.x - o.anchorX - rtge.camera.x, o.y - o.anchorY - rtge.camera.y);
+
+				// Compute bounding box
+				var imgPos = {
+					x: o.x - o.anchorX - rtge.camera.x,
+					y: o.y - o.anchorY - rtge.camera.y
+				};
+				var rightBound = imgPos.x + img.width;
+				var bottomBound = imgPos.y + img.height;
+
+				// Draw the image if at least partially in the viewport
+				if (
+					imgPos.x <= rtge.canvas.width &&
+					imgPos.y <= rtge.canvas.height &&
+					rightBound >= 0 &&
+					bottomBound >= 0
+				)
+				{
+					rtge.canvasCtx.drawImage(img, imgPos.x, imgPos.y);
+				}
 			}
 		}
 
