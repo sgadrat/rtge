@@ -523,7 +523,10 @@ var rtge = {
 		if (rtge.images[imageUrl] instanceof Image) {
 			rtge.canvasCtx.drawImage(rtge.getImage(imageUrl), x, y);
 		}else {
-			rtge.drawTilemap(rtge.canvasCtx, rtge.images[imageUrl], x, y);
+			rtge.drawTilemap(
+				rtge.canvasCtx, rtge.images[imageUrl],
+				x, y, rtge.canvas.width, rtge.canvas.height
+			);
 		}
 	},
 
@@ -533,21 +536,30 @@ var rtge = {
 		canvas.height = tilemap.height * tilemap.tileheight;
 		var ctx = canvas.getContext('2d');
 
-		rtge.drawTilemap(ctx, tilemap, 0, 0);
+		rtge.drawTilemap(ctx, tilemap, 0, 0, canvas.width, canvas.height);
 
 		var res = new Image();
 		res.src = canvas.toDataURL();
 		return res;
 	},
 
-	drawTilemap: function(ctx, tilemap, renderX, renderY) {
+	drawTilemap: function(ctx, tilemap, renderX, renderY, width, height) {
+		var firstX = Math.max(0, Math.floor(-renderX / 16));
+		var firstY = Math.max(0, Math.floor(-renderY / 16));
+		var lastX = Math.min(tilemap.width, Math.ceil((-renderX + width) / 16));
+		var lastY = Math.min(tilemap.height, Math.ceil((-renderY + height) / 16));
+
 		for (var layerIndex = 0; layerIndex < tilemap.layers.length; ++ layerIndex) {
 			var layer = tilemap.layers[layerIndex];
 			if (layer.visible) {
 				var x, y;
-				for (y = 0; y < tilemap.height; ++y) {
-					for (x = 0; x < tilemap.width; ++x) {
+				for (y = firstY; y < lastY; ++y) {
+					for (x = firstX; x < lastX; ++x) {
 						var tileIndex = layer.data[x + y * tilemap.width];
+						if (tileIndex == 0) {
+							continue;
+						}
+
 						for (var tilesetIndex = 0; tilesetIndex < tilemap.tilesets.length; ++ tilesetIndex) {
 							var tileset = tilemap.tilesets[tilesetIndex];
 							if (tileIndex >= tileset.firstgid && tileIndex < tileset.firstgid + tileset.tilecount) {
