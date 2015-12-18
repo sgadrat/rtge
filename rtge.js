@@ -532,14 +532,18 @@ var rtge = {
 	},
 
 	getImage: function(imageUrl) {
-		if (!(rtge.images[imageUrl] instanceof Image)) {
-			rtge.images[imageUrl] = rtge.tilemapToImage(rtge.images[imageUrl]);
+		if (! rtge.isDirectlyDrawable(rtge.images[imageUrl])) {
+			rtge.images[imageUrl] = rtge.tilemapToDrawable(rtge.images[imageUrl]);
 		}
 		return rtge.images[imageUrl];
 	},
 
 	drawImage: function(imageUrl, x, y) {
-		if (rtge.images[imageUrl] instanceof Image || rtge.prerenderTilemaps) {
+		if (
+			rtge.isDirectlyDrawable(rtge.images[imageUrl]) ||
+			rtge.prerenderTilemaps
+		)
+		{
 			rtge.canvasCtx.drawImage(rtge.getImage(imageUrl), x, y);
 		}else {
 			rtge.drawTilemap(
@@ -549,17 +553,21 @@ var rtge = {
 		}
 	},
 
-	tilemapToImage: function(tilemap) {
+	isDirectlyDrawable: function(o) {
+		return (
+			o instanceof Image ||
+			o instanceof HTMLCanvasElement
+		);
+	},
+
+	tilemapToDrawable: function(tilemap) {
 		var canvas = document.createElement('canvas');
 		canvas.width = tilemap.width * tilemap.tilewidth;
 		canvas.height = tilemap.height * tilemap.tileheight;
 		var ctx = canvas.getContext('2d');
 
 		rtge.drawTilemap(ctx, tilemap, 0, 0, canvas.width, canvas.height);
-
-		var res = new Image();
-		res.src = canvas.toDataURL();
-		return res;
+		return canvas;
 	},
 
 	drawTilemap: function(ctx, tilemap, renderX, renderY, width, height) {
@@ -645,9 +653,8 @@ var rtge = {
 	],
 
 	// Set to true to render tilemaps only once
-	//  * unusable on local with Chromium since images from disk taint canvas
 	//  * inconvenient to modify tilemaps on the fly
 	//  * memory usage increase
 	//  * big speed improvement when lots of cells on screen
-	prerenderTilemaps: false,
+	prerenderTilemaps: true,
 };
