@@ -149,7 +149,7 @@ pathfinder.PriorityQueue.prototype = {
 
 	reprioritize: function(element) {
 		for (var i = 0; i < this.elements.length; ++i) {
-			for (var j = 0; j < this.elements[j].length; ++j) {
+			for (var j = 0; j < this.elements[i].length; ++j) {
 				if (this.elements[i][j].wp == element.wp) {
 					this._removeElement(i, j);
 					this.push(element);
