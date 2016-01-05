@@ -96,15 +96,22 @@ var rtge = {
 
 		// Add needed images to preloads
 		var i;
-		/* tilesets */
+		/* tilesets and component images */
 		for (i = 0; i < preloads.length; ++i) {
 			var asset = preloads[i];
 			if (typeof asset != 'string') {
-				var tilesets = asset['tilemap']['tilesets'];
-				for (var tilemapIndex = 0; tilemapIndex < tilesets.length; ++tilemapIndex) {
-					var imgSrc = tilesets[tilemapIndex]['image'];
-					if (imgSrc !== null) {
-						preloads.push(imgSrc);
+				if (asset.data.type == 'tilemap') {
+					var tilesets = asset.data.tilemap.tilesets;
+					for (var tilemapIndex = 0; tilemapIndex < tilesets.length; ++tilemapIndex) {
+						var imgSrc = tilesets[tilemapIndex]['image'];
+						if (imgSrc !== null) {
+							preloads.push(imgSrc);
+						}
+					}
+				}else if (asset.data.type == 'composite') {
+					var components = asset.data.components;
+					for (var compIndex = 0; compIndex < components.length; ++compIndex) {
+						preloads.push(components[compIndex]);
 					}
 				}
 			}
@@ -115,8 +122,8 @@ var rtge = {
 			var name = preloads[i];
 			var data = null;
 			if (typeof name != 'string') {
-				name = preloads[i]['name'];
-				data = preloads[i]['tilemap'];
+				name = preloads[i].name;
+				data = preloads[i].data;
 			}
 			if (!(name in rtge.images)) {
 				if (data === null) {
@@ -533,7 +540,11 @@ var rtge = {
 
 	getImage: function(imageUrl) {
 		if (! rtge.isDirectlyDrawable(rtge.images[imageUrl])) {
-			rtge.images[imageUrl] = rtge.tilemapToDrawable(rtge.images[imageUrl]);
+			if (rtge.images[imageUrl].type == 'tilemap') {
+				rtge.images[imageUrl] = rtge.tilemapToDrawable(rtge.images[imageUrl]);
+			}else if (rtge.images[imageUrl].type == 'composite') {
+				rtge.images[imageUrl] = rtge.compositeToDrawable(rtge.images[imageUrl]);
+			}
 		}
 		return rtge.images[imageUrl];
 	},
@@ -545,11 +556,13 @@ var rtge = {
 		)
 		{
 			rtge.canvasCtx.drawImage(rtge.getImage(imageUrl), x, y);
-		}else {
+		}else if (rtge.images[imageUrl].type == 'tilemap') {
 			rtge.drawTilemap(
 				rtge.canvasCtx, rtge.images[imageUrl],
 				x, y, rtge.canvas.width, rtge.canvas.height
 			);
+		}else if (rtge.images[imageUrl].type == 'composite') {
+			rtge.drawComposite(rtge.canvasCtx, rtge.images[imageUrl], x, y);
 		}
 	},
 
@@ -562,8 +575,8 @@ var rtge = {
 
 	tilemapToDrawable: function(tilemap) {
 		var canvas = document.createElement('canvas');
-		canvas.width = tilemap.width * tilemap.tilewidth;
-		canvas.height = tilemap.height * tilemap.tileheight;
+		canvas.width = tilemap.tilemap.width * tilemap.tilemap.tilewidth;
+		canvas.height = tilemap.tilemap.height * tilemap.tilemap.tileheight;
 		var ctx = canvas.getContext('2d');
 
 		rtge.drawTilemap(ctx, tilemap, 0, 0, canvas.width, canvas.height);
@@ -571,6 +584,8 @@ var rtge = {
 	},
 
 	drawTilemap: function(ctx, tilemap, renderX, renderY, width, height) {
+		tilemap = tilemap.tilemap;
+
 		var firstX = Math.max(0, Math.floor(-renderX / 16));
 		var firstY = Math.max(0, Math.floor(-renderY / 16));
 		var lastX = Math.min(tilemap.width, Math.ceil((-renderX + width) / 16));
@@ -607,6 +622,27 @@ var rtge = {
 					}
 				}
 			}
+		}
+	},
+
+	compositeToDrawable: function(composite) {
+		var canvas = document.createElement('canvas');
+		canvas.width = composite.width;
+		canvas.height = composite.height;
+		var ctx = canvas.getContext('2d');
+
+		rtge.drawComposite(ctx, composite, 0, 0);
+		return canvas;
+	},
+
+	drawComposite: function(ctx, composite, renderX, renderY) {
+		for (var componentIndex = 0; componentIndex < composite.components.length; ++componentIndex) {
+			var component = composite.components[componentIndex];
+			ctx.drawImage(
+				rtge.getImage(component),
+				0, 0, composite.width, composite.height,
+				renderX, renderY, composite.width, composite.height
+			);
 		}
 	},
 
